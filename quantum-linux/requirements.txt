@@ -1,0 +1,7 @@
+# quantum-linux Python dependencies (workflow doc Prerequisites + project spec).
+# Install: pip install -r quantum-linux/requirements.txt   (Python >= 3.11)
+
+numpy>=1.26    # statevector emulator backend (complex128 amplitudes; ~24-qubit laptop ceiling at 16*2^n bytes)
+pytest>=8.0    # test runner for all test_*.py files (Stages 2, 4, 5)
+PyYAML>=6.0    # loads/validates isa-spec/QISA-v0.1.yaml (Stage 1 loader sanity check)
+qiskit>=1.0    # listed per project spec for cross-validation experiments against the QISA-K circuits, even though the emulator itself is numpy-only and never imports it

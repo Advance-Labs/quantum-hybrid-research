@@ -1,0 +1,6 @@
+# HybridBoard Python dependencies (workflow: docs/workflows/03-hybridboard-workflow.md).
+# Version floors match the workflow Prerequisites table (Python >= 3.11).
+
+numpy>=1.26        # Stage 5 power/thermal model: log-space interpolation of the research doc §6 power table (scheduler/power_model.py)
+matplotlib>=3.8    # Stage 5 figure output (power_model_output.png); imported lazily, only needed when plotting
+jupyter>=1.0       # future power-model exploration notebook per workflow Stage 5 (not required by any script today)

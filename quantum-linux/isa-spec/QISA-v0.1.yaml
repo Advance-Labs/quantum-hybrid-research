@@ -1,0 +1,266 @@
+# ============================================================================
+# QISA-K v0.1 -- machine-readable instruction set specification
+#
+# Source of truth: docs/research/02-quantum-linux.md (QISA table, register
+# model, verifier/-ENOEXEC semantics). Operationalized per
+# docs/workflows/02-linux-workflow.md, Stage 1.
+#
+# This file transcribes the research doc's opcode table EXACTLY:
+#   H, X, Y, Z, S, T, RX(theta), RY(theta), RZ(theta), CNOT, CZ,
+#   MEASURE q -> c, RESET, FMR c -> GPR, QWAIT cycles
+# plus BRN reg, label -- the classical control-flow instruction used by the
+# research doc's Bell-pair-with-feed-forward listing (workflow Stage 1 step 3).
+#
+# Loader sanity check (must exit 0):
+#   python -c "import yaml; yaml.safe_load(open('quantum-linux/isa-spec/QISA-v0.1.yaml'))"
+# ============================================================================
+
+meta:
+  name: QISA-K
+  version: "0.1"
+  lineage: [eQASM, OpenQASM3, QIR]
+  # Endianness of the CLASSICAL register file (shadow registers + GPRs).
+  # Quantum registers have no byte representation -- they are linear physical
+  # resources, not value containers (research doc, register model).
+  classical_endianness: little
+  word_size_bits: 32                # encoding sketches are 32-bit, after eQASM
+  description: >
+    Theoretical kernel-facing quantum ISA in the lineage of eQASM (Fu et al.,
+    HPCA 2019), OpenQASM 3 (Cross et al., ACM TQC 2022), and QIR (Linux
+    Foundation QIR Alliance). All kernel-visible state lives in the classical
+    shadow register file; quantum registers are linear (affine) resources --
+    usable at most once along any data path, never duplicated, explicitly
+    consumed by MEASURE/RESET.
+  realism_notes: >
+    A production QISA would also need SIMD "same gate, many qubits" formats
+    and VLIW timing slots, exactly as eQASM found [Demonstrated]. Feed-forward
+    branches (BRN after FMR) must resolve within the coherence window and
+    therefore execute in control firmware, not in any OS code path
+    [Demonstrated] (eQASM; QNodeOS's real-time QNPU). Out of scope for v0.1.
+
+registers:
+  quantum:
+    prefix: q
+    range: "q0 .. qN-1"
+    linear: true                    # use-at-most-once; consumed by MEASURE/RESET
+    addressable_memory: false       # no load/store, no pointer arithmetic, no aliasing
+    copyable: false                 # no-cloning theorem [Proven] (Wootters & Zurek, 1982)
+    context_switchable: false       # saving state = copying or measuring, both excluded
+    description: >
+      Physical qubit identifiers. A "register" here names a physical resource,
+      not a value container (research doc, register model).
+  classical_shadow:
+    prefix: c
+    range: "c0 .. cN-1"
+    width_bits: 1                   # one-bit; may be widened for multi-shot counters
+    endianness: little
+    linear: false
+    context_switchable: true
+    description: >
+      Classical shadow registers that receive measurement outcomes. Ordinary
+      memory with ordinary semantics. The shadow file is the ONLY part of the
+      machine state that can be context-switched, copied, or swapped
+      (research doc, register model).
+  classical_gpr:
+    prefix: r
+    range: "r0 .. rM-1"
+    width_bits: 32
+    endianness: little
+    linear: false
+    context_switchable: true
+    description: >
+      General-purpose classical registers for the FMR / branch (feed-forward)
+      path, after eQASM's classical pipeline.
+  conventions:
+    default_measure_pairing: >
+      Every "MEASURE qi -> ci" pairs qubit i with shadow register i by default.
+
+# ----------------------------------------------------------------------------
+# Instruction table -- transcribed from the research doc's QISA table.
+# Field notes:
+#   opcode_byte : provisional v0.1 assignment of the 8-bit op field. The
+#                 research doc specifies field WIDTHS only ("[8b op]...");
+#                 concrete byte values are a v0.1 editorial completion and may
+#                 change in a spec bump (workflow Risk 9).
+#   unitary     : true | false | null (null = purely classical, "n/a" in the
+#                 research doc's table).
+#   encoding    : verbatim 32-bit encoding sketch from the research doc.
+#   assembly    : surface syntax used by the emulator's program loader.
+# ----------------------------------------------------------------------------
+instructions:
+  - opcode: H
+    opcode_byte: 0x01
+    operands: [{name: q, kind: qubit}]
+    unitary: true
+    semantics: "Hadamard: basis superposition"
+    encoding: "[8b op][2b fmt][14b q][8b rsvd]"
+    assembly: "H q"
+
+  - opcode: X
+    opcode_byte: 0x02
+    operands: [{name: q, kind: qubit}]
+    unitary: true
+    semantics: "Pauli flip (bit flip)"
+    encoding: "[8b op][2b fmt][14b q][8b rsvd]"   # same single-qubit format
+    assembly: "X q"
+
+  - opcode: Y
+    opcode_byte: 0x03
+    operands: [{name: q, kind: qubit}]
+    unitary: true
+    semantics: "Pauli flip+phase"
+    encoding: "[8b op][2b fmt][14b q][8b rsvd]"   # same single-qubit format
+    assembly: "Y q"
+
+  - opcode: Z
+    opcode_byte: 0x04
+    operands: [{name: q, kind: qubit}]
+    unitary: true
+    semantics: "Pauli phase flip"
+    encoding: "[8b op][2b fmt][14b q][8b rsvd]"   # same single-qubit format
+    assembly: "Z q"
+
+  - opcode: S
+    opcode_byte: 0x05
+    operands: [{name: q, kind: qubit}]
+    unitary: true
+    semantics: "Phase pi/2"
+    encoding: "[8b op][2b fmt][14b q][8b rsvd]"   # same single-qubit format
+    assembly: "S q"
+
+  - opcode: T
+    opcode_byte: 0x06
+    operands: [{name: q, kind: qubit}]
+    unitary: true
+    semantics: "Phase pi/4 (T is the non-Clifford resource)"
+    encoding: "[8b op][2b fmt][14b q][8b rsvd]"   # same single-qubit format
+    assembly: "T q"
+
+  - opcode: RX
+    opcode_byte: 0x07
+    operands: [{name: q, kind: qubit}, {name: theta, kind: angle}]
+    unitary: true
+    semantics: "Continuous X rotation; theta as 16-bit fixed-point or LUT index, after eQASM"
+    encoding: "[8b op][14b q][10b theta-idx]"
+    assembly: "RX q, theta"
+
+  - opcode: RY
+    opcode_byte: 0x08
+    operands: [{name: q, kind: qubit}, {name: theta, kind: angle}]
+    unitary: true
+    semantics: "Continuous Y rotation; theta as 16-bit fixed-point or LUT index, after eQASM"
+    encoding: "[8b op][14b q][10b theta-idx]"
+    assembly: "RY q, theta"
+
+  - opcode: RZ
+    opcode_byte: 0x09
+    operands: [{name: q, kind: qubit}, {name: theta, kind: angle}]
+    unitary: true
+    semantics: "Continuous Z rotation; theta as 16-bit fixed-point or LUT index, after eQASM"
+    encoding: "[8b op][14b q][10b theta-idx]"
+    assembly: "RZ q, theta"
+
+  - opcode: CNOT
+    opcode_byte: 0x0A
+    operands: [{name: qc, kind: qubit}, {name: qt, kind: qubit}]
+    unitary: true
+    semantics: "Controlled-X; entangling"
+    encoding: "[8b op][12b qc][12b qt]"
+    assembly: "CNOT qc, qt"
+
+  - opcode: CZ
+    opcode_byte: 0x0B
+    operands: [{name: qc, kind: qubit}, {name: qt, kind: qubit}]
+    unitary: true
+    semantics: "Controlled-Z (native on most superconducting lattices)"
+    encoding: "[8b op][12b qc][12b qt]"           # same two-qubit format
+    assembly: "CZ qc, qt"
+
+  - opcode: MEASURE
+    opcode_byte: 0x0C
+    operands: [{name: q, kind: qubit}, {name: c, kind: shadow}]
+    unitary: false
+    semantics: >
+      Project to Z basis; write outcome to shadow register; destroys
+      superposition (measurement postulate [Proven] -- no peeking API exists).
+    encoding: "[8b op][12b q][12b c]"
+    assembly: "MEASURE q -> c"
+
+  - opcode: RESET
+    opcode_byte: 0x0D
+    operands: [{name: q, kind: qubit}]
+    unitary: false
+    semantics: "Active reset to |0> (measure + conditional X)"
+    encoding: "[8b op][2b fmt][14b q][8b rsvd]"   # single-qubit format
+    assembly: "RESET q"
+
+  - opcode: FMR
+    opcode_byte: 0x0E
+    operands: [{name: c, kind: shadow}, {name: r, kind: gpr}]
+    unitary: null                                  # n/a -- purely classical
+    semantics: "Fetch measurement result into classical pipeline (after eQASM's FMR)"
+    encoding: "classical format"
+    assembly: "FMR c -> r"
+
+  - opcode: QWAIT
+    opcode_byte: 0x0F
+    operands: [{name: cycles, kind: imm}]
+    unitary: null                                  # n/a -- timing, not state evolution
+    semantics: "Deterministic timing barrier (gate scheduling is time-critical)"
+    encoding: "[8b op][24b cycles]"
+    assembly: "QWAIT cycles"
+
+  - opcode: BRN
+    opcode_byte: 0x10
+    operands: [{name: reg, kind: gpr}, {name: label, kind: label}]
+    unitary: null                                  # n/a -- purely classical
+    semantics: >
+      Branch to label when GPR is nonzero (branch-if-nonzero). Classical
+      control flow on a measurement outcome -- the real-time feed-forward path
+      of the research doc's Bell-pair listing. On real hardware this branch
+      must resolve inside the coherence window and therefore lives in control
+      firmware, below any OS code path [Demonstrated] (eQASM; QNodeOS).
+    encoding: "classical format"
+    assembly: "BRN reg, label"
+    origin: "workflow Stage 1 step 3 addition; used by the research doc's Bell listing"
+
+# ----------------------------------------------------------------------------
+# Static verifier rules -- the -ENOEXEC conditions the research doc assigns to
+# the qexec verifier ("no gate on an unleased qubit, no use-after-measure
+# without RESET"; errno table row: -ENOEXEC = "Verifier rejection: unleased
+# qubit, use-after-measure, or malformed QIR").
+# ----------------------------------------------------------------------------
+verifier_rules:
+  errno_on_violation: "-ENOEXEC"
+  rules:
+    - id: no-gate-on-unleased-qubit
+      description: >
+        Every qubit operand must name a qubit inside the program's lease
+        (in the emulator: 0 <= index < n_qubits). Rejected statically.
+      source: "research doc, syscall section: 'no gate on an unleased qubit'"
+    - id: no-use-after-measure-without-RESET
+      description: >
+        After "MEASURE q -> c", any further use of q (gate or MEASURE) without
+        an intervening RESET is a use-after-measure fault -- the quantum
+        analogue of W^X enforcement (research doc, Bell listing commentary).
+      source: "research doc, QISA section + syscall section"
+    - id: no-qubit-operand-duplication-in-copy-position
+      description: >
+        A two-qubit instruction may not name the same qubit twice
+        (e.g. rejects "CNOT q0, q0"): a natural extension of the linear-
+        resource discipline (qubits are use-at-most-once along any data path).
+      source: "workflow Stage 1 step 4 (workflow addition, not in the research doc's verifier list)"
+      example_rejected: "CNOT q0, q0"
+    - id: malformed-program
+      description: >
+        Classical register operands must name an existing register: shadow
+        (c*) and GPR (r*) indices are range-checked against the classical
+        register file. An out-of-range index is the statically checkable
+        slice of the research doc's "malformed QIR" -ENOEXEC cause.
+      source: "research doc, errno table: 'malformed QIR' verifier-rejection cause"
+      example_rejected: "FMR c99 -> r0"
+  notes: >
+    The research doc's third -ENOEXEC cause, malformed QIR, is split: the
+    statically checkable slice (out-of-range classical register operands) is
+    the malformed-program rule above; full QIR blob validation is handled at
+    the Stage 4 blob-parsing layer (workflow Stage 1 step 4).

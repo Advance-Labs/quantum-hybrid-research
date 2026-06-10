@@ -1,0 +1,8 @@
+# qml-accelerator dependencies — version floors per docs/workflows/01-qml-workflow.md (Prerequisites table)
+torch>=2.3                  # classical transformer baseline, autograd, torch.profiler (Stage 1)
+pennylane>=0.38             # quantum circuit construction, parameter-shift gradients, PyTorch interface (Stages 2-3; arXiv:1811.04968)
+pennylane-lightning>=0.38   # lightning.qubit fast statevector simulator (~30-qubit dense ceiling, research doc §5)
+numpy>=1.26                 # shared numerics across all stages
+scipy>=1.11                 # condition-number (kappa) estimation for HHL caveat enforcement (Stage 2)
+matplotlib>=3.8             # crossover and speedup charts (Stage 4: complexity_analysis.py figures)
+pytest>=8                   # per-stage acceptance tests
