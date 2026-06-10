@@ -34,7 +34,11 @@ Implements workflow Stage 3 of ``docs/workflows/01-qml-workflow.md``:
 Loop anatomy (one step): classical forward pass through the transformer ->
 quantum gradient estimation for the adapter's circuit parameters
 (parameter-shift via the PennyLane+PyTorch bridge on ``default.qubit``) ->
-classical AdamW weight update for *all* parameters.
+classical AdamW weight update for *all* parameters. The QNode executes
+per sample (one circuit per token hidden state), not broadcasted:
+parameter-shift cannot differentiate broadcasted trainable parameters
+(pennylane#4462), and real hardware executes one circuit at a time anyway,
+so the per-sample loop is the more faithful reference model.
 
 What is simulated vs. real: the QNode executes on a statevector simulator;
 per the workflow ground rules, its wall-clock times validate correctness only
@@ -187,14 +191,34 @@ class HybridConfig:
         return "parameter-shift"
 
     @property
+    def expected_executions_per_sample(self) -> int:
+        """Expected circuit executions per QNode sample in shift mode.
+
+        1 forward evaluation + 2 shifted evaluations per trainable circuit
+        parameter (parameter-shift) — the O(d) economics of research doc
+        §3.1 [Proven]. The trainable parameters are the d_q circuit weights
+        *plus* the n_qubits embedding angles: the upstream squeeze linear
+        trains end-to-end, so gradients must also flow through the
+        AngleEmbedding inputs.
+        """
+        return 1 + parameter_shift_executions(
+            self.quantum_param_count + self.n_qubits
+        )
+
+    @property
     def expected_executions_per_step(self) -> int:
         """Expected circuit executions per training step in shift mode.
 
-        1 forward evaluation + 2·d_q shifted evaluations (parameter-shift),
-        per broadcasted batch — the O(d) economics of research doc §3.1
-        [Proven]. Recorded alongside the simulator-measured tracker count.
+        Per-sample cost times ``batch_size * seq_len`` samples — the QNode
+        executes once per token hidden state, per-sample rather than
+        broadcasted (see :meth:`QuantumAdapterHead.forward`: pennylane#4462
+        rules out parameter-shift over broadcasted trainable parameters,
+        and per-circuit execution is the hardware-faithful model anyway).
+        Recorded alongside the simulator-measured tracker count.
         """
-        return 1 + parameter_shift_executions(self.quantum_param_count)
+        return (
+            self.expected_executions_per_sample * self.batch_size * self.seq_len
+        )
 
 
 # --------------------------------------------------------------------------
@@ -248,12 +272,29 @@ class QuantumAdapterHead(nn.Module):
         return [p for _, p in self.qlayer.named_parameters()]
 
     def forward(self, h: "torch.Tensor") -> "torch.Tensor":
-        """Route hidden states (B, L, D) through the VQC; same output shape."""
+        """Route hidden states (B, L, D) through the VQC; same output shape.
+
+        The QNode is executed **per sample** (one circuit input at a time)
+        rather than as one broadcasted (B*L, n) call. Two reasons:
+
+        1. Correctness: PennyLane's parameter-shift transform cannot
+           differentiate broadcasted tapes with respect to broadcasted
+           trainable parameters (pennylane#4462 — raises
+           ``NotImplementedError``). The embedding angles here *are*
+           trainable, because the upstream squeeze linear trains end-to-end.
+        2. Hardware faithfulness: real QPUs execute one circuit at a time —
+           broadcast batching is a simulator-only shortcut, so the per-sample
+           loop is the *more* honest model of parameter-shift gradient
+           economics for this reference implementation (batch sizes here are
+           small, so the simulator cost stays tractable).
+        """
         bsz, seq, _ = h.shape
         n = self.config.n_qubits
         # tanh * pi bounds the embedding angles to one RY period.
         z = math.pi * torch.tanh(self.squeeze(h))
-        q = self.qlayer(z.reshape(-1, n))  # (B*L, n) expvals in [-1, 1]
+        flat = z.reshape(-1, n)  # (B*L, n) embedding angles
+        # Per-sample circuit execution (see docstring); expvals in [-1, 1].
+        q = torch.stack([self.qlayer(sample) for sample in flat])
         return self.expand(q.reshape(bsz, seq, n))
 
 
@@ -527,12 +568,16 @@ def run_experiment(
             hybrid_cfg.expected_executions_per_step
         ),
         "execution_scaling_note": (
-            "Expected per-step executions in shift mode = 1 + 2*d_q = "
-            f"{hybrid_cfg.expected_executions_per_step} (d_q = "
-            f"{hybrid_cfg.quantum_param_count}) per broadcasted batch — the "
-            "O(d) economics of research doc §3.1 [Proven]; at hardware "
-            "precision eps=1e-2 each expectation additionally needs "
-            f"~{shots_for_precision(1e-2):,} shots."
+            "Expected executions per sample in shift mode = 1 + 2*(d_q + n) "
+            f"= {hybrid_cfg.expected_executions_per_sample} (d_q = "
+            f"{hybrid_cfg.quantum_param_count} circuit weights + "
+            f"{hybrid_cfg.n_qubits} trainable embedding angles); per step = "
+            f"{hybrid_cfg.expected_executions_per_step} across "
+            f"{hybrid_cfg.batch_size * hybrid_cfg.seq_len} per-sample "
+            "circuits (per-sample, not broadcast: pennylane#4462; also the "
+            "hardware-faithful model) — the O(d) economics of research doc "
+            "§3.1 [Proven]; at hardware precision eps=1e-2 each expectation "
+            f"additionally needs ~{shots_for_precision(1e-2):,} shots."
         ),
         "hybrid": hybrid_result,
         "control": control_result,
@@ -575,8 +620,14 @@ def print_plan(cfg: HybridConfig) -> None:
     print(f"  cost observables    : local single-qubit <Z_w> "
           "(research doc §3.3-3.4 [Proven], Cerezo et al.)")
     print(f"  circuit parameters  : d_q = {d_q} (one RY per qubit per layer)")
-    print(f"  executions/step     : 1 + 2*d_q = {cfg.expected_executions_per_step} "
-          "in parameter-shift mode (O(d), research doc §3.1 [Proven])")
+    print(f"  executions/sample   : 1 + 2*(d_q + n) = "
+          f"{cfg.expected_executions_per_sample} in parameter-shift mode "
+          "(O(d), research doc §3.1 [Proven]; the n embedding angles are "
+          "trainable because the squeeze linear trains end-to-end)")
+    print(f"  executions/step     : {cfg.expected_executions_per_step} "
+          f"({cfg.batch_size * cfg.seq_len} per-sample circuits/step — "
+          "per-sample, not broadcast: pennylane#4462, and hardware runs "
+          "one circuit at a time anyway)")
     print(f"  shots @ eps=1e-2    : {shots_for_precision(1e-2):,} per expectation "
           "value on hardware (O(1/eps^2), §3.1 [Proven])")
     print(f"  training            : {cfg.steps} steps, batch {cfg.batch_size}, "
