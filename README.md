@@ -2,12 +2,13 @@
 
 > Theoretical research and implementation scaffolding at the quantum/classical intersection: quantum-accelerated LLM training, Linux as the control plane for quantum hardware, and a hybrid classical/quantum motherboard reference architecture.
 
+[![CI: verify](https://github.com/Advance-Labs/quantum-hybrid-research/actions/workflows/ci.yml/badge.svg)](https://github.com/Advance-Labs/quantum-hybrid-research/actions/workflows/ci.yml)
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 ![Status: Theoretical Research](https://img.shields.io/badge/Status-theoretical_research-orange.svg)
 ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-green.svg)
-![Emulator Tests](https://img.shields.io/badge/quantum--linux_emulator-72%2F72_tests_passing-brightgreen.svg)
+![QuantumLinux Tests](https://img.shields.io/badge/quantum--linux_suite-228%2F228_tests_passing-brightgreen.svg)
 
-The QuantumLinux statevector emulator ships with a 72-test pytest suite (`quantum-linux/emulator/test_hello_quantum.py`) that passes in full; all other code artifacts compile and run as reference models.
+The QuantumLinux stack ships with a 228-test pytest suite (`pytest quantum-linux/` — emulator, QLOS runtime, toolchain, kernel-init harness) that passes in full and runs in CI (`.github/workflows/ci.yml`); all other code artifacts compile and run as reference models.
 
 ## Overview
 
@@ -81,6 +82,9 @@ Recommended reading order per project: research document → workflow → code.
 quantum-hybrid-research/
 ├── README.md                              # this file
 ├── LICENSE                                # MIT, Advance Labs Inc.
+├── .github/
+│   └── workflows/
+│       └── ci.yml                         # "verify" workflow: py_compile + pytest + C/YAML checks
 ├── docs/
 │   ├── research/
 │   │   ├── 01-qml-accelerator.md          # QML theory survey; readiness 2/10 verdict
@@ -108,9 +112,25 @@ quantum-hybrid-research/
 │   │   └── QISA-v0.1.yaml                 # machine-readable QISA-K instruction set
 │   ├── emulator/
 │   │   ├── qcpu.py                        # numpy statevector quantum CPU emulator
-│   │   └── test_hello_quantum.py          # 72-test pytest suite (passing)
+│   │   ├── test_hello_quantum.py          # 72-test pytest suite (passing)
+│   │   └── test_kernel_init.py            # 16-test Stage 5 kernel-init harness (boots through QLOS)
+│   ├── qos/
+│   │   ├── QLOS-DESIGN-v0.1.md            # QLOS v0.1 binding interface contract
+│   │   ├── qsyscalls.py                   # QLOSRuntime: qalloc/qexec/qmeasure/qfree in user space
+│   │   ├── scheduler.py                   # QProcess · LeaseManager · QPUScheduler (coherence-budget admission)
+│   │   └── test_qos.py                    # 55-test runtime + scheduler suite
+│   ├── toolchain/
+│   │   ├── qas.py                         # assembler: QISA-K .qs text → QOBJ v0.1 JSON
+│   │   ├── qdis.py                        # disassembler: QOBJ → canonical .qs (round-trip safe)
+│   │   └── test_toolchain.py              # 85-test assembler/disassembler suite
+│   ├── examples/
+│   │   ├── bell.qs                        # Bell pair — the QLOS "hello world"
+│   │   ├── hello_quantum.qs               # single-qubit superposition starter
+│   │   ├── teleport.qs                    # quantum teleportation with feed-forward
+│   │   └── qrun.py                        # dev-loop driver: assemble → run → counts (+ --trace debugger)
 │   └── kernel-patches/
 │       ├── arch-quantum-notes.md          # per-subsystem portability audit notes
+│       ├── compatibility-matrix.md        # kernel subsystem → quantum portability matrix
 │       └── qsyscall.h                     # QALLOC/QEXEC/QMEASURE/QFREE C11 header
 └── hybrid-board/
     ├── README.md
@@ -150,7 +170,11 @@ python simulations/hybrid_training_loop.py --dry-run    # prints the execution p
 cd quantum-linux
 pip install numpy pyyaml pytest        # or: pip install -r requirements.txt
 
-pytest emulator/test_hello_quantum.py  # 72 tests — Bell pairs, feed-forward, QISA-K semantics
+pytest .                               # 228 tests — emulator, QLOS runtime, toolchain, kernel-init
+
+# The whole dev loop in one line: assemble bell.qs, submit it through the
+# QLOS runtime (qalloc/qexec/qmeasure/qfree), print measured counts:
+python examples/qrun.py examples/bell.qs --shots 1024
 ```
 
 ### hybrid-board

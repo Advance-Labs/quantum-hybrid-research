@@ -1,0 +1,127 @@
+{
+  "workflow_stage": "Stage 5: Emulator + Kernel Integration Test",
+  "generated_by": "quantum-linux/emulator/test_kernel_init.py --report",
+  "seed": 20260610,
+  "shots_per_program": 4096,
+  "jiffies": 6,
+  "isa": {
+    "name": "QISA-K",
+    "version": "0.1",
+    "opcodes": 16,
+    "loaded_from_yaml": true
+  },
+  "qpu_probe": {
+    "n_pool_qubits": 8,
+    "qubit_census_free": 8,
+    "calibration_table": {
+      "q0": {
+        "t1_us": 120.0,
+        "t2_us": 95.0,
+        "readout_error": 0.01
+      },
+      "q1": {
+        "t1_us": 125.9,
+        "t2_us": 92.7,
+        "readout_error": 0.012
+      },
+      "q2": {
+        "t1_us": 126.4,
+        "t2_us": 87.9,
+        "readout_error": 0.014
+      },
+      "q3": {
+        "t1_us": 121.0,
+        "t2_us": 85.1,
+        "readout_error": 0.01
+      },
+      "q4": {
+        "t1_us": 114.7,
+        "t2_us": 86.7,
+        "readout_error": 0.012
+      },
+      "q5": {
+        "t1_us": 113.3,
+        "t2_us": 91.4,
+        "readout_error": 0.014
+      },
+      "q6": {
+        "t1_us": 118.0,
+        "t2_us": 94.8,
+        "readout_error": 0.01
+      },
+      "q7": {
+        "t1_us": 124.6,
+        "t2_us": 93.8,
+        "readout_error": 0.012
+      }
+    },
+    "calibration_is_mock": true
+  },
+  "lease_manager": {
+    "smoke_fd": 3,
+    "lease_id": 1,
+    "state_live": true,
+    "flags_ok": true,
+    "vq_to_pq": [
+      0,
+      1
+    ],
+    "free_during_lease": 6,
+    "free_after_qfree": 8
+  },
+  "verifier_selftest": {
+    "assemble_time_reject": true,
+    "qexec_time_reject": true
+  },
+  "gate_counts": {
+    "RESET": 12288,
+    "QWAIT": 4096,
+    "X": 4096,
+    "MEASURE": 12288,
+    "H": 4096,
+    "CNOT": 4096
+  },
+  "two_qubit_gate_count": 4096,
+  "measure_count": 12288,
+  "cycle_counter": 32768,
+  "cycle_counter_note": "QWAIT cycle total of executed shots; computed statically as sum(stats.qwait_cycles * shots) -- exact for these branch-free programs; NOT a timing/coherence model (workflow Risk 3)",
+  "shots": 8192,
+  "wall_clock_emulation_s": 0.28198604192584753,
+  "peak_statevector_bytes": 64,
+  "peak_statevector_note": "16 * 2**n_qubits for the largest lease -- emulator-capacity cost, NOT the [Proven] tomography bound",
+  "virtual_now_cycles": 79,
+  "two_qubit_gates_per_shot": 0.5,
+  "nighthawk_2q_budget_asserted": 5000,
+  "scheduler": {
+    "jobs_submitted": 2,
+    "jobs_completed": 2,
+    "jobs_rejected": {
+      "ENOEXEC": 1,
+      "ETIME": 0,
+      "ESTALE": 0,
+      "EPERM": 0
+    },
+    "jobs_cancelled": 0,
+    "deadline_misses": 0
+  },
+  "counts": {
+    "hello_quantum": {
+      "1": 4096
+    },
+    "bell": {
+      "11": 1991,
+      "00": 2105
+    }
+  },
+  "log": [
+    "[    0.000000] qlos: kernel init sequence starting (Stage 5 harness, emulated)",
+    "[    0.036057] qpu_core: probe: ISA QISA-K v0.1 (16 opcodes, yaml=True)",
+    "[    0.036060] qpu_core: probe: qubit census 8/8 free; calibration table 8 entries (MOCK -- emulator is noiseless)",
+    "[    0.036076] qpu_core: lease bring-up: qset fd 3 (lease 1, vq->pq (0, 1)); pool 6/8 free",
+    "[    0.042804] qpu_core: verifier self-test: assemble-time reject=True, qexec-time reject=True (-ENOEXEC, the quantum W^X analogue)",
+    "[    0.042819] qpu_core: lease bring-up: qfree -> pool 8/8 free",
+    "[    0.124373] init: userland: hello_quantum.qs -> 4096 shots, counts {'1': 4096} (est 31 cycles/shot)",
+    "[    0.281967] init: userland: bell.qs -> 4096 shots, counts {'11': 1991, '00': 2105} (est 48 cycles/shot)",
+    "[    0.281987] init: report: 8192 shots, 2q gates 4096, measures 12288, QWAIT cycles 32768, jiffies 6"
+  ]
+}

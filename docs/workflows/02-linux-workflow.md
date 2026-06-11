@@ -111,9 +111,9 @@ Framing note (binding): the research doc proves the literal port fails at theore
 **Deliverables**
 
 - `quantum-linux/kernel-patches/qsyscall.h`
-- `quantum-linux/kernel-patches/context-switch-protocol.md`
-- `quantum-linux/emulator/qsyscall_shim.py`
-- `quantum-linux/emulator/test_qsyscall.py`
+- `quantum-linux/qos/QLOS-DESIGN-v0.1.md` §§3–5 (the context-switch / no-preemption protocol)
+- `quantum-linux/qos/qsyscalls.py` (layout per `qos/QLOS-DESIGN-v0.1.md` §8)
+- `quantum-linux/qos/test_qos.py` (layout per `qos/QLOS-DESIGN-v0.1.md` §8)
 
 **Acceptance criteria**
 
@@ -132,7 +132,7 @@ Framing note (binding): the research doc proves the literal port fails at theore
 3. Sanity-check the report against hardware reality: assert `two_qubit_gate_count` per shot ≤ 5,000 — the reliable two-qubit-gate budget of IBM's shipping Nighthawk **[Demonstrated]**. Treat the ~7,500 end-of-2026 figure as roadmap **[Speculative]**: it may appear in a comment, never in an assertion.
 4. Write `quantum-linux/kernel-patches/compatibility-matrix.md`: one row per kernel component, columns `Component | Class (A/B/C/D) | Works in this repo? | Mechanism | Research-doc rationale`. Every Class value MUST equal the research doc's classification table (boot/init A; IRQ core A; driver core A; syscall/VFS plumbing A; CFS→EDF scheduler B; qubit allocator B; VM naming layer B; `fork()` for quantum state D; CoW D; swap/demand paging D; page cache/KSM/snapshots D; `ptrace`/core dumps D; filesystems-at-rest C; quantum fds in VFS B; classical net stack A; `AF_QIPC` B; qubit buffering/retransmit/multicast D; isolation B; timekeeping A; power management B; console/ABI A).
 5. Map "Works in this repo?" honestly: A-rows → exercised by the Python harness; B-rows → partially modeled by the shim (lease manager, EDF admission stub), **except `AF_QIPC`**, which stays class B but is marked "not modeled in this repo" because quantum networking is excluded entirely (see Risk 8); C-rows → emulated (circuits stored as files, re-execution contracts); D-rows → "not implemented and not implementable — [Proven]" with the specific theorem named.
-6. Wire everything into one command: `pytest quantum-linux/emulator/` runs Stages 2, 4, and 5 tests green from a clean checkout.
+6. Wire everything into one command: `pytest quantum-linux/` runs Stages 2, 4, and 5 tests green from a clean checkout.
 
 **Deliverables**
 
