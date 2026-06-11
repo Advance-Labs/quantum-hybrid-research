@@ -1,3 +1,4 @@
+import Link from "next/link";
 import BlochHero from "@/components/bloch/BlochHero";
 
 const REPO = "https://github.com/Advance-Labs/quantum-hybrid-research";
@@ -24,11 +25,11 @@ function ExtLink({
   children: React.ReactNode;
   className?: string;
 }) {
+  const external = href.startsWith("http");
   return (
     <a
       href={href}
-      target="_blank"
-      rel="noopener noreferrer"
+      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className={`underline decoration-white/25 underline-offset-4 transition-colors hover:text-cryo hover:decoration-cryo/60 ${className}`}
     >
       {children}
@@ -46,6 +47,9 @@ function TopBar() {
           QUANTUM-HYBRID RESEARCH
         </p>
         <nav className="flex items-center gap-6 font-mono text-[12px] text-muted">
+          <Link href="/learn" className="transition-colors hover:text-cryo">
+            Learn ↗
+          </Link>
           <a
             href="https://advancelabs.dev"
             target="_blank"
@@ -122,11 +126,17 @@ function Hero() {
           className="rise mt-10 flex flex-wrap gap-3"
           style={{ animationDelay: "360ms" }}
         >
+          <Link
+            href="/learn"
+            className="border border-cryo/60 px-5 py-2.5 font-mono text-[12px] tracking-wider text-cryo transition-colors hover:bg-cryo/10"
+          >
+            LEARN HOW IT WORKS →
+          </Link>
           <a
             href={REPO}
             target="_blank"
             rel="noopener noreferrer"
-            className="border border-cryo/60 px-5 py-2.5 font-mono text-[12px] tracking-wider text-cryo transition-colors hover:bg-cryo/10"
+            className="border border-white/15 px-5 py-2.5 font-mono text-[12px] tracking-wider text-muted transition-colors hover:border-white/40 hover:text-paper"
           >
             READ THE RESEARCH ↗
           </a>
@@ -443,6 +453,17 @@ const INDEX: IndexRow[] = [
       label: "04-quantum-viz-education.md",
     },
     code: { href: tree("site"), label: "site/ — this page" },
+  },
+  {
+    num: "05",
+    title: "Interactive explainer — learn quantum computing in the browser",
+    readiness: "live",
+    tone: "text-proven",
+    research: {
+      href: blob("docs/research/04-quantum-viz-education.md"),
+      label: "04-quantum-viz-education.md",
+    },
+    code: { href: "/learn", label: "/learn — try it" },
   },
 ];
 

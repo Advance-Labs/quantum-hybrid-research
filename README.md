@@ -10,7 +10,7 @@
 
 The QuantumLinux stack ships with a 228-test pytest suite (`pytest quantum-linux/` — 72 emulator + 55 QLOS runtime/scheduler + 85 toolchain + 16 kernel-init) that passes in full; CI (`.github/workflows/ci.yml`) runs it on every push to `main` and every pull request. All other code artifacts compile and run as reference models.
 
-**🔬 Research showcase: [quantum.advancelabs.dev](https://quantum.advancelabs.dev)** — the verdicts, the QLOS dev loop, and a live Bloch-sphere statevector you can apply gates to ([`site/`](site/), auto-deployed from `main`).
+**🔬 Research showcase: [quantum.advancelabs.dev](https://quantum.advancelabs.dev)** — the verdicts, the QLOS dev loop, and a live Bloch-sphere statevector you can apply gates to ([`site/`](site/), auto-deployed from `main`). It now includes an interactive explainer — learn how a quantum computer works by manipulating a real statevector in your browser at [quantum.advancelabs.dev/learn](https://quantum.advancelabs.dev/learn).
 
 ## Overview
 

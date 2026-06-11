@@ -68,3 +68,8 @@ coverage/
 .vscode/
 *.swp
 *.swo
+
+# site/ is a Next.js app, not a Python build tree: keep its lib/ (the
+# /learn statevector engine) and the app-icon PNGs out of the Python rules.
+!site/lib/
+!site/app/*.png
