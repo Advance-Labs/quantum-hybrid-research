@@ -67,6 +67,16 @@
 #include <stdint.h>
 #include <stdio.h>
 
+/* M_PI / M_E are POSIX extensions, not ISO C11: glibc hides them under
+ * -std=c11 (strict ISO mode), while Darwin's math.h exposes them. Define
+ * the portable fallbacks so the file builds with any conforming compiler. */
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+#ifndef M_E
+#define M_E 2.71828182845904523536
+#endif
+
 /* <linux/types.h> equivalents. */
 typedef uint8_t  u8;
 typedef uint16_t u16;
