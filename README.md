@@ -10,6 +10,8 @@
 
 The QuantumLinux stack ships with a 228-test pytest suite (`pytest quantum-linux/` — 72 emulator + 55 QLOS runtime/scheduler + 85 toolchain + 16 kernel-init) that passes in full; CI (`.github/workflows/ci.yml`) runs it on every push to `main` and every pull request. All other code artifacts compile and run as reference models.
 
+**🔬 Research showcase: [quantum.advancelabs.dev](https://quantum.advancelabs.dev)** — the verdicts, the QLOS dev loop, and a live Bloch-sphere statevector you can apply gates to ([`site/`](site/), auto-deployed from `main`).
+
 ## Overview
 
 This repository is an [Advance Labs](https://advancelabs.dev) research initiative asking three concrete questions about where quantum and classical computing meet:
