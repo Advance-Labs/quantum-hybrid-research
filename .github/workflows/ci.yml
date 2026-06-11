@@ -57,7 +57,7 @@ jobs:
       - name: Build and run the scheduler demo
         run: |
           cc -std=c11 -Wall -Wextra -Werror -DQSCHED_DEMO \
-            -o /tmp/d hybrid-board/scheduler/quantum_scheduler.c
+            -o /tmp/d hybrid-board/scheduler/quantum_scheduler.c -lm
           /tmp/d
 
   yaml:

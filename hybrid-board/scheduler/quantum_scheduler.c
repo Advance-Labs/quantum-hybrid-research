@@ -43,7 +43,7 @@
  * Build (workflow Stage 4, step 4 — userspace compile-check only):
  *   cc -std=c11 -fsyntax-only quantum_scheduler.c            # syntax check
  *   cc -std=c11 -Wall -Wextra -Werror -DQSCHED_DEMO \
- *      -o /tmp/qsched quantum_scheduler.c && /tmp/qsched     # routing demo
+ *      -o /tmp/qsched quantum_scheduler.c -lm && /tmp/qsched # routing demo
  *
  * Copyright: Advance Labs quantum/classical hybrid research series.
  * Document of record: docs/research/03-hybrid-board.md (June 2026).

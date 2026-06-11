@@ -184,7 +184,7 @@ cd hybrid-board
 
 # Hybrid scheduler reference model (C11, userspace only):
 cc -std=c11 -Wall -Wextra -Werror -DQSCHED_DEMO \
-   -o /tmp/qsched scheduler/quantum_scheduler.c && /tmp/qsched
+   -o /tmp/qsched scheduler/quantum_scheduler.c -lm && /tmp/qsched
 
 # Thermal/power model (Markdown tables, no matplotlib needed):
 python scheduler/power_model.py --table-only
