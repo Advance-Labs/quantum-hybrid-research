@@ -163,18 +163,21 @@ quantum-hybrid-research/
 │       ├── arch-quantum-notes.md          # per-subsystem portability audit notes
 │       ├── compatibility-matrix.md        # kernel subsystem → quantum portability matrix
 │       └── qsyscall.h                     # QALLOC/QEXEC/QMEASURE/QFREE C11 header
-└── hybrid-board/
-    ├── README.md
-    ├── requirements.txt                   # numpy, matplotlib, jupyter
-    ├── architecture/
-    │   ├── HYBRIDBOARD-ARCH-v0.1.md       # board block diagram + component selection
-    │   └── QCX-PROTOCOL-v0.1.md           # Quantum Compute Express bus spec (CXL 3.1-derived)
-    ├── firmware/
-    │   ├── QPUINIT.md                     # UEFI QPU initialization sequence
-    │   └── ACPI-QDEV.md                   # ACPI quantum device enumeration object
-    └── scheduler/
-        ├── quantum_scheduler.c            # hybrid workload-routing reference model (C11)
-        └── power_model.py                 # thermal/power model of research doc §6
+├── hybrid-board/
+│   ├── README.md
+│   ├── requirements.txt                   # numpy, matplotlib, jupyter
+│   ├── architecture/
+│   │   ├── HYBRIDBOARD-ARCH-v0.1.md       # board block diagram + component selection
+│   │   └── QCX-PROTOCOL-v0.1.md           # Quantum Compute Express bus spec (CXL 3.1-derived)
+│   ├── firmware/
+│   │   ├── QPUINIT.md                     # UEFI QPU initialization sequence
+│   │   └── ACPI-QDEV.md                   # ACPI quantum device enumeration object
+│   └── scheduler/
+│       ├── quantum_scheduler.c            # hybrid workload-routing reference model (C11)
+│       └── power_model.py                 # thermal/power model of research doc §6
+└── site/                                  # research showcase site (Next.js + R3F live Bloch hero)
+    ├── app/                               # App Router page implementing docs/research/04 findings
+    └── components/bloch/                  # qubit.ts statevector + interactive Bloch scene
 ```
 
 ## Getting Started

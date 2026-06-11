@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #08090c;
+  --color-paper: #e9e7e0;
+  --color-muted: #8a8f98;
+  --color-cryo: #7dedff;
+  --color-proven: #4ade80;
+  --color-theory: #fbbf24;
+  --color-spec: #f87171;
+
+  --font-serif: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: var(--font-plex-sans), system-ui, -apple-system, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: rgba(125, 237, 255, 0.22);
+}
+
+/* Hairline: the single structural line weight used across the page. */
+.hairline {
+  border-top: 1px solid rgba(233, 231, 224, 0.09);
+}
+
+/* Hero page-load stagger — pure CSS, delays set inline per element. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  opacity: 0;
+  animation: rise 0.8s cubic-bezier(0.21, 0.9, 0.27, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .rise {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
