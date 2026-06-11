@@ -113,7 +113,8 @@ quantum-hybrid-research/
 │   ├── research/
 │   │   ├── 01-qml-accelerator.md          # QML theory survey; readiness 2/10 verdict
 │   │   ├── 02-quantum-linux.md            # kernel-port feasibility; hybrid control-plane verdict
-│   │   └── 03-hybrid-board.md             # board feasibility; latency/power/TRL analysis
+│   │   ├── 03-hybrid-board.md             # board feasibility; latency/power/TRL analysis
+│   │   └── 04-quantum-viz-education.md    # web 3D quantum-explainer feasibility; readiness 8/10
 │   └── workflows/
 │       ├── 01-qml-workflow.md             # 5-stage build plan for qml-accelerator/
 │       ├── 02-linux-workflow.md           # 5-stage build plan for quantum-linux/
