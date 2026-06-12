@@ -47,6 +47,9 @@ function TopBar() {
           QUANTUM-HYBRID RESEARCH
         </p>
         <nav className="flex items-center gap-6 font-mono text-[12px] text-muted">
+          <Link href="/whitepaper" className="transition-colors hover:text-cryo">
+            Whitepaper
+          </Link>
           <Link href="/learn" className="transition-colors hover:text-cryo">
             Learn ↗
           </Link>
@@ -56,7 +59,7 @@ function TopBar() {
             rel="noopener noreferrer"
             className="transition-colors hover:text-cryo"
           >
-            Advance Labs
+            Advance Labs ↗
           </a>
           <a
             href={REPO}
