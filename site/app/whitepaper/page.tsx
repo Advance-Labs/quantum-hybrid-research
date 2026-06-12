@@ -106,6 +106,23 @@ export default function WhitepaperPage() {
           <Ext href={ADVANCE}>Advance Labs</Ext>, the studio behind this initiative.
         </p>
 
+        <div className="mt-6 flex flex-wrap gap-3">
+          <a
+            href="/quantum-whitepaper.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="border border-cryo/60 px-5 py-2.5 font-mono text-[12px] tracking-wider text-cryo transition-colors hover:bg-cryo/10"
+          >
+            DOWNLOAD THE PDF ↓
+          </a>
+          <Link
+            href="/whitepaper/summary"
+            className="border border-white/15 px-5 py-2.5 font-mono text-[12px] tracking-wider text-muted transition-colors hover:border-white/40 hover:text-paper"
+          >
+            ONE-SCREEN SUMMARY →
+          </Link>
+        </div>
+
         {/* Claim-tag legend */}
         <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 border-t border-white/8 pt-6">
           {(["Proven", "Demonstrated", "Theoretical", "Speculative"] as const).map((k) => (
