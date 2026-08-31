@@ -16,6 +16,50 @@
 
 html {
   scroll-behavior: smooth;
+
+  /*
+   * This page is dark by design (body paints --color-ink, #08090c), but it never told the
+   * browser that, so `color-scheme` computed as `normal` and every piece of native UI was
+   * rendered for a LIGHT page. The visible symptom was a bright white scrollbar track down
+   * the side of a near-black page, which reads as broken rather than styled — and it is
+   * worse inside an iframe, where the bar sits a few pixels from the frame border.
+   *
+   * `color-scheme: dark` is the fix for the whole class of it at once: scrollbars, form
+   * controls, and spellcheck underlines all switch to their dark variants. It is not a
+   * theme declaration and does not change any authored colour on this page.
+   */
+  color-scheme: dark;
+
+  /* Slim the bar to match the hairline weight this design uses everywhere else.
+     scrollbar-width/color are the standard properties (Firefox + Chromium 121+); the
+     -webkit block below covers older Chromium and Safari, which ignore them. */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(233, 231, 224, 0.22) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(233, 231, 224, 0.18);
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(233, 231, 224, 0.32);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 body {
