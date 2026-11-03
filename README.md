@@ -7,6 +7,7 @@
 ![Status: Theoretical Research](https://img.shields.io/badge/Status-theoretical_research-orange.svg)
 ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-green.svg)
 ![QuantumLinux Tests](https://img.shields.io/badge/quantum--linux_suite-228%2F228_tests_passing-brightgreen.svg)
+[![MCP servers live](https://whobuildsagents.com/badge/advancelabs.dev.svg)](https://whobuildsagents.com/advancelabs.dev)
 
 The QuantumLinux stack ships with a 228-test pytest suite (`pytest quantum-linux/` — 72 emulator + 55 QLOS runtime/scheduler + 85 toolchain + 16 kernel-init) that passes in full; CI (`.github/workflows/ci.yml`) runs it on every push to `main` and every pull request. All other code artifacts compile and run as reference models.
 
