@@ -43,6 +43,8 @@ htmlcov/
 # Generated artifacts (benchmarks, plots)
 *.png
 !docs/**/*.png
+!site/public/*.png
+!site/app/**/*.png
 # Scratch baselines are ignored, but the canonical reference artifacts
 # consumed by Stage 4 (benchmarks/) are tracked.
 classical_baseline.json
