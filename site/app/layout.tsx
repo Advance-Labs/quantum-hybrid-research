@@ -25,6 +25,16 @@ export const metadata: Metadata = {
   title: "Quantum-Hybrid Research — Advance Labs",
   description:
     "Three honest feasibility studies, one operating-system runtime, and a 228-test emulator — every claim tagged by the strength of its evidence.",
+  // Plain public/ files, not app/icon.*: Next appends a hash and Vercel a per-deploy ?dpl= to
+  // file-convention icons, and Google wants a stable favicon URL of at least 48px.
+  icons: {
+    icon: [
+      { url: "/favicon-96.png", type: "image/png", sizes: "96x96" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
 };
 
 /* Subtle film grain: SVG feTurbulence as a data-URI, ~3% opacity. */
